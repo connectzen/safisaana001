@@ -78,8 +78,7 @@ export default function TermsOfService() {
                 If you have any questions about these Terms of Service, please contact us at:
               </p>
               <p className="mt-2">
-                Email: support@safisaana.com<br />
-                Address: 123 Business Street, City, Country
+                Email: support@safisaana.com
               </p>
             </section>
           </div>
