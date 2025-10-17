@@ -60,8 +60,17 @@ export async function POST(request: NextRequest) {
       process.env.INTASEND_TEST_MODE === 'true' // true for test/sandbox mode
     );
 
+    console.log('IntaSend initialized with test mode:', process.env.INTASEND_TEST_MODE === 'true');
+
     // Create a collection/checkout
-    const collection = intasend.collection();
+    let collection;
+    try {
+      collection = intasend.collection();
+      console.log('Collection object created:', typeof collection);
+    } catch (err) {
+      console.error('Failed to create collection:', err);
+      throw new Error('Failed to initialize payment collection');
+    }
 
     // Prepare checkout data
     const checkoutData = {
@@ -75,14 +84,30 @@ export async function POST(request: NextRequest) {
       redirect_url: `${process.env.NEXT_PUBLIC_APP_URL || 'https://safisaana.com'}/payment/success`,
       // Add metadata for webhook processing
       api_ref: productId ? `${userId}_${productId}_${Date.now()}` : undefined,
-      // Store product and user info in the payment record
-      host: process.env.NEXT_PUBLIC_APP_URL || 'https://safisaana.com',
     };
 
-    console.log('Creating IntaSend checkout:', checkoutData);
+    console.log('Creating IntaSend checkout with data:', {
+      email,
+      phone,
+      amount: parseFloat(amount),
+      currency,
+      first_name: firstName || 'Customer',
+    });
 
-    // Create the checkout
-    const response = await collection.create(checkoutData);
+    // Create the checkout - try different method signatures
+    let response;
+    try {
+      if (typeof collection.create === 'function') {
+        response = await collection.create(checkoutData);
+      } else if (typeof collection === 'function') {
+        response = await collection(checkoutData);
+      } else {
+        throw new Error('Collection object does not have a create method');
+      }
+    } catch (err: any) {
+      console.error('Collection.create error:', err);
+      throw err;
+    }
 
     console.log('IntaSend response:', response);
 
