@@ -14,12 +14,15 @@ function CheckoutContent() {
   const { user } = useAuth();
   const [planName, setPlanName] = useState('');
   const [price, setPrice] = useState(0);
+  const [productId, setProductId] = useState('');
 
   useEffect(() => {
     const name = searchParams.get('plan') || 'Selected Plan';
     const priceParam = searchParams.get('price') || '0';
+    const prodId = searchParams.get('productId') || '';
     setPlanName(name);
     setPrice(parseFloat(priceParam));
+    setProductId(prodId);
   }, [searchParams]);
 
   return (
@@ -105,6 +108,8 @@ function CheckoutContent() {
             <PaymentForm 
               amount={price} 
               currency="KES"
+              productId={productId}
+              productName={planName}
               onSuccess={(data) => {
                 console.log('Payment initiated:', data);
                 // IntaSend will redirect to their checkout page

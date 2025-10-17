@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
   try {
     // Parse request body
     const body = await request.json();
-    const { email, phone, amount, currency, firstName, lastName } = body;
+    const { email, phone, amount, currency, firstName, lastName, productId, productName, userId } = body;
 
     // Validate required fields
     if (!email || !phone || !amount || !currency) {
@@ -59,6 +59,10 @@ export async function POST(request: NextRequest) {
       last_name: lastName || '',
       // Redirect URLs (customize these)
       redirect_url: `${process.env.NEXT_PUBLIC_APP_URL || 'https://safisaana.com'}/payment/success`,
+      // Add metadata for webhook processing
+      api_ref: productId ? `${userId}_${productId}_${Date.now()}` : undefined,
+      // Store product and user info in the payment record
+      host: process.env.NEXT_PUBLIC_APP_URL || 'https://safisaana.com',
     };
 
     console.log('Creating IntaSend checkout:', checkoutData);

@@ -90,11 +90,40 @@ export async function POST(request: NextRequest) {
       
       console.log(`✅ Payment ${invoice_id} marked as SUCCESS in Firestore`);
       
-      // TODO: You can add additional logic here:
+      // Check if this is a product purchase (has productId in payload or metadata)
+      const productId = payload.productId || payload.metadata?.productId;
+      const userId = payload.userId || payload.metadata?.userId;
+      const productName = payload.productName || payload.metadata?.productName;
+      
+      if (productId && userId) {
+        try {
+          // Record purchase in purchases collection
+          const purchaseId = `${userId}_${productId}`;
+          const purchaseRef = db.collection('purchases').doc(purchaseId);
+          
+          await purchaseRef.set({
+            userId: userId,
+            productId: productId,
+            productName: productName || 'Product',
+            amount: parseFloat(value || '0'),
+            currency: currency || 'KES',
+            transactionId: invoice_id || api_ref,
+            status: 'completed',
+            purchasedAt: new Date().toISOString(),
+            createdAt: new Date().toISOString(),
+          }, { merge: true });
+          
+          console.log(`✅ Purchase recorded for user ${userId}: ${productName}`);
+        } catch (purchaseError) {
+          console.error('Error recording purchase:', purchaseError);
+          // Don't fail the webhook if purchase recording fails
+        }
+      }
+      
+      // TODO: Additional logic:
       // - Send email confirmation
       // - Update user subscription status
-      // - Grant access to purchased products
-      // - Create order record
+      // - Send product download link
       
     } else if (isPending) {
       // Payment pending - update status

@@ -6,10 +6,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { CreditCard, Loader2 } from 'lucide-react';
+import { useAuth } from '@/lib/auth-context';
 
 interface PaymentFormProps {
   amount?: number;
   currency?: string;
+  productId?: string;
+  productName?: string;
   onSuccess?: (data: any) => void;
   onError?: (error: string) => void;
 }
@@ -17,9 +20,12 @@ interface PaymentFormProps {
 export function PaymentForm({ 
   amount: defaultAmount, 
   currency: defaultCurrency = 'KES',
+  productId,
+  productName,
   onSuccess,
   onError
 }: PaymentFormProps) {
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
@@ -53,7 +59,12 @@ export function PaymentForm({
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          productId: productId,
+          productName: productName,
+          userId: user?.uid,
+        }),
       });
 
       const data = await response.json();

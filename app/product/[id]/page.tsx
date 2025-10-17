@@ -6,14 +6,20 @@ import { useParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useProducts } from '@/lib/hooks';
+import { useAuth } from '@/lib/auth-context';
+import { checkUserOwnsProduct } from '@/lib/purchases';
+import { ShoppingCart, CheckCircle2, Lock } from 'lucide-react';
 import type { Product } from '@/types';
 
 export default function ProductDetailsPage() {
   const { id } = useParams();
   const router = useRouter();
+  const { user } = useAuth();
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [ownsProduct, setOwnsProduct] = useState(false);
+  const [checkingOwnership, setCheckingOwnership] = useState(true);
   const { getProducts } = useProducts();
 
   useEffect(() => {
@@ -29,6 +35,17 @@ export default function ProductDetailsPage() {
         }
         
         setProduct(foundProduct);
+        
+        // Check if user owns this product
+        if (user) {
+          setCheckingOwnership(true);
+          const owns = await checkUserOwnsProduct(user.uid, id as string);
+          setOwnsProduct(owns);
+          setCheckingOwnership(false);
+        } else {
+          setOwnsProduct(false);
+          setCheckingOwnership(false);
+        }
       } catch (err) {
         console.error('Error fetching product:', err);
         setError('Failed to load product');
@@ -40,7 +57,18 @@ export default function ProductDetailsPage() {
     if (id) {
       fetchProduct();
     }
-  }, [id]);
+  }, [id, user]);
+
+  const handleBuyNow = () => {
+    if (!user) {
+      // Redirect to login if not authenticated
+      router.push(`/login?redirect=/product/${id}`);
+      return;
+    }
+    
+    // Redirect to checkout with product details
+    router.push(`/checkout?plan=${encodeURIComponent(product?.title || '')}&price=${product?.price}&productId=${id}`);
+  };
 
   const getTypeBadge = (type: string) => {
     const typeMap: Record<string, { label: string; className: string }> = {
@@ -138,15 +166,39 @@ export default function ProductDetailsPage() {
               )}
 
               <div className="flex flex-col space-y-4 mt-8">
-                <Button size="lg" className="w-full py-6 text-lg">
-                  Add to Cart - ${Number(product.price).toFixed(2)}
-                </Button>
-                {product.fileUrl && (
-                  <Button variant="outline" size="lg" className="w-full py-6 text-lg" asChild>
-                    <a href={product.fileUrl} target="_blank" rel="noopener noreferrer">
-                      Download Now
-                    </a>
+                {checkingOwnership ? (
+                  <Button size="lg" className="w-full py-6 text-lg" disabled>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                    Checking ownership...
                   </Button>
+                ) : ownsProduct ? (
+                  <>
+                    <div className="bg-green-50 border-2 border-green-500 rounded-lg p-4 text-center">
+                      <CheckCircle2 className="h-8 w-8 text-green-600 mx-auto mb-2" />
+                      <p className="text-green-900 font-semibold text-lg">You Own This Product!</p>
+                      <p className="text-green-700 text-sm mt-1">Access your purchase below</p>
+                    </div>
+                    {product.fileUrl && (
+                      <Button size="lg" className="w-full py-6 text-lg bg-green-600 hover:bg-green-700" asChild>
+                        <a href={product.fileUrl} target="_blank" rel="noopener noreferrer">
+                          Access Product
+                        </a>
+                      </Button>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <Button size="lg" className="w-full py-6 text-lg" onClick={handleBuyNow}>
+                      <ShoppingCart className="mr-2 h-5 w-5" />
+                      Buy Now - ${Number(product.price).toFixed(2)}
+                    </Button>
+                    {!user && (
+                      <p className="text-sm text-center text-muted-foreground">
+                        <Lock className="inline h-3 w-3 mr-1" />
+                        Please log in to purchase
+                      </p>
+                    )}
+                  </>
                 )}
               </div>
 
