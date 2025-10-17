@@ -11,9 +11,23 @@ const IntaSend = require('intasend-node');
  */
 export async function POST(request: NextRequest) {
   try {
+    // Check if IntaSend credentials are configured
+    if (!process.env.INTASEND_PUBLISHABLE_KEY || !process.env.INTASEND_SECRET_KEY) {
+      console.error('IntaSend credentials not configured');
+      return NextResponse.json(
+        { 
+          error: 'Payment gateway not configured',
+          details: 'IntaSend API keys are missing. Please contact support.'
+        },
+        { status: 500 }
+      );
+    }
+
     // Parse request body
     const body = await request.json();
     const { email, phone, amount, currency, firstName, lastName, productId, productName, userId } = body;
+
+    console.log('Payment initiation request:', { email, phone, amount, currency, productId, userId });
 
     // Validate required fields
     if (!email || !phone || !amount || !currency) {
@@ -82,11 +96,25 @@ export async function POST(request: NextRequest) {
 
   } catch (error: any) {
     console.error('IntaSend payment initiation error:', error);
+    console.error('Error details:', {
+      message: error.message,
+      response: error.response?.data,
+      status: error.response?.status,
+    });
+    
+    // Extract meaningful error message
+    let errorMessage = 'Failed to initiate payment';
+    let errorDetails = error.message || 'Unknown error';
+    
+    if (error.response?.data) {
+      errorDetails = JSON.stringify(error.response.data);
+    }
     
     return NextResponse.json(
       { 
-        error: 'Failed to initiate payment',
-        details: error.message || 'Unknown error'
+        error: errorMessage,
+        details: errorDetails,
+        hint: 'Please check your IntaSend API keys and test mode settings in Vercel environment variables.'
       },
       { status: 500 }
     );
