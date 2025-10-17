@@ -28,13 +28,24 @@ export function PaymentForm({
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    email: '',
+    email: user?.email || '',
     phone: '',
     amount: defaultAmount?.toString() || '',
     currency: defaultCurrency,
     firstName: '',
     lastName: '',
   });
+
+  // Update amount when prop changes
+  React.useEffect(() => {
+    if (defaultAmount) {
+      setFormData(prev => ({
+        ...prev,
+        amount: defaultAmount.toString(),
+        currency: defaultCurrency,
+      }));
+    }
+  }, [defaultAmount, defaultCurrency]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({
@@ -177,18 +188,26 @@ export function PaymentForm({
           {/* Amount */}
           <div className="space-y-2">
             <Label htmlFor="amount">Amount *</Label>
-            <Input
-              id="amount"
-              name="amount"
-              type="number"
-              step="0.01"
-              min="1"
-              placeholder="100.00"
-              value={formData.amount}
-              onChange={handleChange}
-              required
-              disabled={loading || !!defaultAmount}
-            />
+            <div className="relative">
+              <Input
+                id="amount"
+                name="amount"
+                type="number"
+                step="0.01"
+                min="1"
+                placeholder="100.00"
+                value={formData.amount}
+                onChange={handleChange}
+                required
+                disabled={!!defaultAmount || loading}
+                className={defaultAmount ? "bg-gray-100 cursor-not-allowed" : ""}
+              />
+              {defaultAmount && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  Amount is pre-set for this purchase
+                </p>
+              )}
+            </div>
           </div>
 
           {/* Currency */}
