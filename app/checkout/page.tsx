@@ -1,14 +1,17 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Check, CreditCard, Lock } from 'lucide-react';
+import { Check, Lock, Loader2 } from 'lucide-react';
 import Link from 'next/link';
+import { PaymentForm } from '@/components/payment-form';
+import { useAuth } from '@/lib/auth-context';
 
-export default function CheckoutPage() {
+function CheckoutContent() {
   const searchParams = useSearchParams();
+  const { user } = useAuth();
   const [planName, setPlanName] = useState('');
   const [price, setPrice] = useState(0);
 
@@ -21,47 +24,16 @@ export default function CheckoutPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-accent/5 py-16">
-      <div className="container mx-auto px-4 max-w-4xl">
+      <div className="container mx-auto px-4 max-w-6xl">
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold mb-2">Complete Your Purchase</h1>
-          <p className="text-muted-foreground">Secure checkout powered by SAFISAANA</p>
+          <p className="text-muted-foreground">Secure checkout powered by IntaSend</p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Order Summary */}
-          <div className="lg:col-span-2">
-            <Card>
-              <CardHeader>
-                <CardTitle>Payment Method</CardTitle>
-                <CardDescription>Payment integration coming soon</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {/* Placeholder for payment form */}
-                <div className="p-8 border-2 border-dashed rounded-lg text-center">
-                  <CreditCard className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-                  <h3 className="text-lg font-semibold mb-2">Payment Integration Coming Soon</h3>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    We're working on integrating secure payment options including:
-                  </p>
-                  <div className="flex flex-wrap justify-center gap-3 text-sm">
-                    <span className="px-3 py-1 bg-gray-100 rounded-full">💳 Credit Card</span>
-                    <span className="px-3 py-1 bg-gray-100 rounded-full">🅿️ PayPal</span>
-                    <span className="px-3 py-1 bg-gray-100 rounded-full">🔷 Stripe</span>
-                  </div>
-                </div>
-
-                {/* Security Badge */}
-                <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-                  <Lock className="h-4 w-4" />
-                  <span>Secure SSL Encrypted Payment</span>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Order Summary Sidebar */}
-          <div className="lg:col-span-1">
+          <div className="order-2 lg:order-1">
             <Card className="sticky top-4">
               <CardHeader>
                 <CardTitle>Order Summary</CardTitle>
@@ -109,13 +81,14 @@ export default function CheckoutPage() {
                   </div>
                 </div>
 
-                <Button className="w-full" size="lg" disabled>
-                  Complete Purchase
-                </Button>
-
                 <Button asChild className="w-full" variant="outline">
                   <Link href="/pricing">← Back to Pricing</Link>
                 </Button>
+
+                <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground pt-2">
+                  <Lock className="h-4 w-4" />
+                  <span>Secure SSL Encrypted Payment</span>
+                </div>
 
                 <p className="text-xs text-center text-muted-foreground">
                   By completing your purchase, you agree to our{' '}
@@ -126,8 +99,36 @@ export default function CheckoutPage() {
               </CardContent>
             </Card>
           </div>
+
+          {/* Payment Form */}
+          <div className="order-1 lg:order-2">
+            <PaymentForm 
+              amount={price} 
+              currency="KES"
+              onSuccess={(data) => {
+                console.log('Payment initiated:', data);
+                // IntaSend will redirect to their checkout page
+              }}
+              onError={(error) => {
+                console.error('Payment error:', error);
+                alert('Failed to initiate payment. Please try again.');
+              }}
+            />
+          </div>
         </div>
       </div>
     </div>
+  );
+}
+
+export default function CheckoutPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-12 w-12 animate-spin" />
+      </div>
+    }>
+      <CheckoutContent />
+    </Suspense>
   );
 }
