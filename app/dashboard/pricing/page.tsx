@@ -30,6 +30,7 @@ export default function PricingManagementPage() {
     originalPrice: '',
     description: '',
     features: '',
+    paymentLink: '',
     popular: false,
     active: true,
   });
@@ -80,6 +81,7 @@ export default function PricingManagementPage() {
         description: formData.description,
         features: formData.features.split('\n').filter(f => f.trim()),
         includes: formData.type === 'bundle' ? selectedPlans : undefined,
+        paymentLink: formData.paymentLink || undefined,
         popular: formData.popular,
         active: formData.active,
       };
@@ -104,6 +106,7 @@ export default function PricingManagementPage() {
         originalPrice: '',
         description: '',
         features: '',
+        paymentLink: '',
         popular: false,
         active: true,
       });
@@ -126,6 +129,7 @@ export default function PricingManagementPage() {
       originalPrice: item.originalPrice?.toString() || '',
       description: item.description,
       features: item.features.join('\n'),
+      paymentLink: item.paymentLink || '',
       popular: item.popular,
       active: item.active,
     });
@@ -349,6 +353,21 @@ export default function PricingManagementPage() {
                     )}
                   </div>
                 )}
+
+                <div>
+                  <Label htmlFor="paymentLink">External Payment Link (Optional)</Label>
+                  <Input
+                    id="paymentLink"
+                    name="paymentLink"
+                    type="url"
+                    value={formData.paymentLink}
+                    onChange={handleInputChange}
+                    placeholder="https://payment-provider.com/checkout/your-plan"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    💡 Add a payment link from your payment provider. When set, customers will be redirected to this link instead of the default checkout.
+                  </p>
+                </div>
 
                 <div className="flex gap-4">
                   <label className="flex items-center gap-2">

@@ -130,7 +130,8 @@ export default function PricingPage() {
           features: item.features,
           popular: item.popular,
           productCount: productCount,
-          unlocksMessage: `Access to all ${productCount} ${item.productType}${productCount !== 1 ? 's' : ''}`
+          unlocksMessage: `Access to all ${productCount} ${item.productType}${productCount !== 1 ? 's' : ''}`,
+          paymentLink: item.paymentLink
         };
       });
 
@@ -145,7 +146,8 @@ export default function PricingPage() {
           return plan ? plan.name : planId;
         }) || [],
         buttonText: 'Get ' + item.name.split(' ')[0],
-        popular: item.popular
+        popular: item.popular,
+        paymentLink: item.paymentLink
       }));
 
       // Use Firebase data or fallback
@@ -159,9 +161,24 @@ export default function PricingPage() {
     }
   };
 
-  const handlePurchase = (productName: string, price: number) => {
-    // Redirect to checkout page with plan details
-    window.location.href = `/checkout?plan=${encodeURIComponent(productName)}&price=${price}`;
+  const handlePurchase = (productName: string, price: number, productId?: string, paymentLink?: string) => {
+    // If external payment link is provided, redirect to it
+    if (paymentLink) {
+      window.location.href = paymentLink;
+      return;
+    }
+    
+    // Otherwise, redirect to checkout page with plan details
+    const params = new URLSearchParams({
+      plan: productName,
+      price: price.toString(),
+    });
+    
+    if (productId) {
+      params.append('productId', productId);
+    }
+    
+    window.location.href = `/checkout?${params.toString()}`;
   };
 
   if (loading) {
@@ -235,10 +252,15 @@ export default function PricingPage() {
                   <Button 
                     className="w-full" 
                     size="lg"
-                    onClick={() => handlePurchase(product.name, product.price)}
+                    onClick={() => handlePurchase(product.name, product.price, undefined, product.paymentLink)}
                   >
                     Get {product.name.split(' ')[0]}
                   </Button>
+                  {product.paymentLink && (
+                    <p className="text-xs text-center text-gray-500 mt-2">
+                      🔗 External payment link
+                    </p>
+                  )}
                 </CardFooter>
               </Card>
             ))}
@@ -296,10 +318,15 @@ export default function PricingPage() {
                     className="w-full" 
                     size="lg" 
                     variant={bundle.popular ? 'default' : 'outline'}
-                    onClick={() => handlePurchase(bundle.name, bundle.price)}
+                    onClick={() => handlePurchase(bundle.name, bundle.price, undefined, bundle.paymentLink)}
                   >
                     {bundle.buttonText}
                   </Button>
+                  {bundle.paymentLink && (
+                    <p className="text-xs text-center text-gray-500 mt-2">
+                      🔗 External payment link
+                    </p>
+                  )}
                 </CardFooter>
               </Card>
             ))}

@@ -14,6 +14,7 @@ export interface PricingItem {
   description: string;
   features: string[];
   includes?: string[];
+  paymentLink?: string;
   popular: boolean;
   active: boolean;
   createdAt: string;
@@ -29,6 +30,7 @@ export interface PricingFormData {
   description: string;
   features: string[];
   includes?: string[];
+  paymentLink?: string;
   popular: boolean;
   active: boolean;
 }
@@ -64,6 +66,9 @@ export function usePricing() {
       if (data.includes && data.includes.length > 0) {
         cleanData.includes = data.includes;
       }
+      if (data.paymentLink) {
+        cleanData.paymentLink = data.paymentLink;
+      }
 
       const docRef = await addDoc(collection(db, 'pricing'), cleanData);
       setLoading(false);
@@ -94,6 +99,7 @@ export function usePricing() {
           description: data.description,
           features: data.features || [],
           includes: data.includes,
+          paymentLink: data.paymentLink,
           popular: data.popular || false,
           active: data.active !== undefined ? data.active : true,
           createdAt: data.createdAt?.toDate().toISOString() || new Date().toISOString(),
@@ -143,6 +149,9 @@ export function usePricing() {
           // Remove the includes field if it's empty
           cleanData.includes = [];
         }
+      }
+      if (data.paymentLink !== undefined) {
+        cleanData.paymentLink = data.paymentLink || null;
       }
 
       const docRef = doc(db, 'pricing', id);

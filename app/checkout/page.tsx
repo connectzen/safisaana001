@@ -1,23 +1,41 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Check, CreditCard, Lock } from 'lucide-react';
+import { Check, CreditCard, Lock, CheckCircle, XCircle } from 'lucide-react';
 import Link from 'next/link';
+import { useAuth } from '@/lib/auth-context';
 
 export default function CheckoutPage() {
   const searchParams = useSearchParams();
+  const router = useRouter();
+  const { user } = useAuth();
   const [planName, setPlanName] = useState('');
   const [price, setPrice] = useState(0);
+  const [priceKES, setPriceKES] = useState(0);
+  const [productId, setProductId] = useState('');
+  const [paymentStatus, setPaymentStatus] = useState<'idle' | 'processing' | 'success' | 'failed'>('idle');
+  const [paymentMessage, setPaymentMessage] = useState('');
 
   useEffect(() => {
     const name = searchParams.get('plan') || 'Selected Plan';
     const priceParam = searchParams.get('price') || '0';
+    const id = searchParams.get('productId') || '';
+    const usdPrice = parseFloat(priceParam);
     setPlanName(name);
-    setPrice(parseFloat(priceParam));
+    setPrice(usdPrice);
+    // Convert USD to KES (1 USD = ~128 KES)
+    setPriceKES(usdPrice * 128);
+    setProductId(id);
   }, [searchParams]);
+
+  const handlePaymentError = (error: any) => {
+    console.error('Payment error:', error);
+    setPaymentStatus('failed');
+    setPaymentMessage(error?.message || 'Payment failed. Please try again.');
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-accent/5 py-16">
@@ -34,20 +52,48 @@ export default function CheckoutPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Payment Method</CardTitle>
-                <CardDescription>Payment integration coming soon</CardDescription>
+                <CardDescription>Select your preferred payment option</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                {/* Placeholder for payment form */}
-                <div className="p-8 border-2 border-dashed rounded-lg text-center">
-                  <CreditCard className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-                  <h3 className="text-lg font-semibold mb-2">Payment Integration Coming Soon</h3>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    We're working on integrating secure payment options including:
-                  </p>
-                  <div className="flex flex-wrap justify-center gap-3 text-sm">
-                    <span className="px-3 py-1 bg-gray-100 rounded-full">💳 Credit Card</span>
-                    <span className="px-3 py-1 bg-gray-100 rounded-full">🅿️ PayPal</span>
-                    <span className="px-3 py-1 bg-gray-100 rounded-full">🔷 Stripe</span>
+                {/* Payment Status Messages */}
+                {paymentStatus === 'success' && (
+                  <div className="p-4 bg-green-50 border border-green-200 rounded-lg flex items-start gap-3">
+                    <CheckCircle className="h-5 w-5 text-green-600 mt-0.5" />
+                    <div>
+                      <h4 className="font-semibold text-green-900">Payment Successful!</h4>
+                      <p className="text-sm text-green-700">{paymentMessage}</p>
+                    </div>
+                  </div>
+                )}
+
+                {paymentStatus === 'failed' && (
+                  <div className="p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
+                    <XCircle className="h-5 w-5 text-red-600 mt-0.5" />
+                    <div>
+                      <h4 className="font-semibold text-red-900">Payment Failed</h4>
+                      <p className="text-sm text-red-700">{paymentMessage}</p>
+                    </div>
+                  </div>
+                )}
+
+                {paymentStatus === 'processing' && (
+                  <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg flex items-start gap-3">
+                    <div className="h-5 w-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mt-0.5" />
+                    <div>
+                      <h4 className="font-semibold text-blue-900">Processing Payment</h4>
+                      <p className="text-sm text-blue-700">{paymentMessage}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Payment Integration Placeholder */}
+                <div className="p-6 border rounded-lg bg-white">
+                  <div className="text-center mb-6">
+                    <CreditCard className="h-12 w-12 mx-auto mb-3 text-blue-600" />
+                    <h3 className="text-lg font-semibold mb-2">Payment Integration</h3>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Payment integration will be added here
+                    </p>
                   </div>
                 </div>
 
@@ -109,9 +155,15 @@ export default function CheckoutPage() {
                   </div>
                 </div>
 
-                <Button className="w-full" size="lg" disabled>
-                  Complete Purchase
-                </Button>
+                <div className="text-xs text-muted-foreground">
+                  <p className="mb-2">💡 <strong>How it works:</strong></p>
+                  <ol className="list-decimal list-inside space-y-1 text-xs">
+                    <li>Click the payment button above</li>
+                    <li>Choose your preferred payment method</li>
+                    <li>Complete the payment securely</li>
+                    <li>Get instant access to your purchase</li>
+                  </ol>
+                </div>
 
                 <Button asChild className="w-full" variant="outline">
                   <Link href="/pricing">← Back to Pricing</Link>
