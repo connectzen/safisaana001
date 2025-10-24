@@ -147,18 +147,6 @@ export default function Home() {
               </p>
             </>
           )}
-          <div className="max-w-2xl mx-auto">
-            <div className="flex gap-2">
-              <Input
-                type="text"
-                placeholder="Search products..."
-                className="flex-1 bg-white/20 border-0 text-white placeholder-white/70 focus-visible:ring-white/50"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-              <Button variant="secondary">Search</Button>
-            </div>
-          </div>
         </div>
       </section>
 
@@ -261,7 +249,6 @@ export default function Home() {
           </p>
           <div className="flex gap-4 justify-center">
             <Button size="lg">Browse All Products</Button>
-            <Button variant="outline" size="lg">Contact Sales</Button>
           </div>
         </div>
       </section>

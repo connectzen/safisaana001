@@ -35,11 +35,8 @@ export function Header() {
     >
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-20">
-          {/* Logo */}
+          {/* Brand Name */}
           <Link href="#home" className="flex items-center gap-2 group">
-            <div className="w-10 h-10 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center transition-transform group-hover:scale-110">
-              <span className="text-white font-bold text-xl">S</span>
-            </div>
             <span className={`font-bold text-xl transition-colors ${isScrolled ? "text-foreground" : "text-white"}`}>
               SAFISAANA
             </span>
