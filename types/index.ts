@@ -5,10 +5,9 @@ export interface ProductFormData {
   type: ProductType;
   price: number;
   imageUrl: string;
-  fileUrl: string;
+  paymentLink: string;
   shortDescription: string;
   description: string;
-  paymentLink?: string;
   createdAt?: string;
   updatedAt?: string;
 }

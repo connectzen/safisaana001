@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Check, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { PaymentForm } from '@/components/payment-form';
 import { usePricing, type PricingItem } from '@/lib/hooks/usePricing';
 import { useProducts } from '@/lib/hooks/useProducts';
 import type { Product } from '@/types';
@@ -69,6 +70,8 @@ export default function PricingPage() {
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [bundles, setBundles] = useState<any[]>([]);
+  const [showPaymentForm, setShowPaymentForm] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<any>(null);
 
   useEffect(() => {
     loadPricing();
@@ -131,15 +134,20 @@ export default function PricingPage() {
     }
   };
 
-  const handlePurchase = (productName: string, price: number, productId?: string, paymentLink?: string) => {
-    // Only redirect to external payment links
-    if (paymentLink) {
-      window.location.href = paymentLink;
-      return;
-    }
-    
-    // If no payment link is provided, show alert
-    alert(`No payment link configured for ${productName}. Please contact support.`);
+  const handlePurchase = (product: any) => {
+    setSelectedProduct(product);
+    setShowPaymentForm(true);
+  };
+
+  const handlePaymentSuccess = (data: any) => {
+    console.log('Payment request submitted:', data);
+    // Keep the form open to show waiting state
+    // setShowPaymentForm(false);
+    // setSelectedProduct(null);
+  };
+
+  const handlePaymentError = (error: string) => {
+    console.error('Payment error:', error);
   };
 
   if (loading) {
@@ -213,15 +221,10 @@ export default function PricingPage() {
                   <Button 
                     className="w-full" 
                     size="lg"
-                    onClick={() => handlePurchase(product.name, product.price, undefined, product.paymentLink)}
+                    onClick={() => handlePurchase(product)}
                   >
                     Get {product.name.split(' ')[0]}
                   </Button>
-                  {product.paymentLink && (
-                    <p className="text-xs text-center text-gray-500 mt-2">
-                      🔗 External payment link
-                    </p>
-                  )}
                 </CardFooter>
               </Card>
             ))}
@@ -281,15 +284,10 @@ export default function PricingPage() {
                     className="w-full" 
                     size="lg" 
                     variant={bundle.popular ? 'default' : 'outline'}
-                    onClick={() => handlePurchase(bundle.name, bundle.price, undefined, bundle.paymentLink)}
+                    onClick={() => handlePurchase(bundle)}
                   >
                     {bundle.buttonText}
                   </Button>
-                  {bundle.paymentLink && (
-                    <p className="text-xs text-center text-gray-500 mt-2">
-                      🔗 External payment link
-                    </p>
-                  )}
                 </CardFooter>
               </Card>
                 ))}
@@ -328,6 +326,33 @@ export default function PricingPage() {
           </div>
         </div>
       </div>
+
+      {/* Payment Form Modal */}
+      {showPaymentForm && selectedProduct && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-4 border-b flex justify-between items-center">
+              <h3 className="text-lg font-semibold">Purchase Request</h3>
+              <button
+                onClick={() => setShowPaymentForm(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="p-4">
+              <PaymentForm
+                productName={selectedProduct.name}
+                price={selectedProduct.price}
+                productId={selectedProduct.id}
+                productType={selectedProduct.type}
+                onSuccess={handlePaymentSuccess}
+                onError={handlePaymentError}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

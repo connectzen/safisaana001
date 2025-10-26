@@ -217,11 +217,10 @@ export default function Home() {
                         ${Number(product.price).toFixed(2)}
                       </p>
                     </CardContent>
-                    <CardFooter className="flex justify-between pt-0">
-                      <Button variant="outline" asChild>
+                    <CardFooter className="pt-0">
+                      <Button variant="outline" asChild className="w-full">
                         <Link href={`/product/${product.id}`}>View Details</Link>
                       </Button>
-                      <Button>Add to Cart</Button>
                     </CardFooter>
                   </div>
                 </div>

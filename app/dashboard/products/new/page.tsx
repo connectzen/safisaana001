@@ -21,10 +21,9 @@ export default function NewProductPage() {
     type: "" as ProductType,
     price: "",
     imageUrl: "",
-    fileUrl: "",
+    paymentLink: "",
     shortDescription: "",
-    description: "",
-    paymentLink: ""
+    description: ""
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
@@ -60,8 +59,8 @@ export default function NewProductPage() {
       return
     }
 
-    if (!formData.fileUrl) {
-      setError("Please provide a file URL")
+    if (!formData.paymentLink) {
+      setError("Please provide a payment URL")
       return
     }
 
@@ -160,24 +159,17 @@ export default function NewProductPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="fileUrl">
-                    {formData.type === 'plugin' ? 'Plugin File URL' : 
-                     formData.type === 'ebook' ? 'E-book File URL' : 
-                     'Course Access URL'} *
-                  </Label>
+                  <Label htmlFor="paymentLink">External Payment URL *</Label>
                   <Input
-                    id="fileUrl"
-                    name="fileUrl"
+                    id="paymentLink"
+                    name="paymentLink"
                     type="url"
-                    value={formData.fileUrl}
+                    value={formData.paymentLink}
                     onChange={handleChange}
-                    placeholder={
-                      formData.type === 'plugin' ? 'https://example.com/plugin.zip' :
-                      formData.type === 'ebook' ? 'https://example.com/ebook.pdf' :
-                      'https://example.com/course-access'
-                    }
+                    placeholder="https://example.com/pay"
                     required
                   />
+                  <p className="text-xs text-gray-500 mt-1">URL where users will be redirected to complete payment</p>
                 </div>
 
                 <div className="space-y-2 md:col-span-2">
@@ -205,20 +197,6 @@ export default function NewProductPage() {
                   />
                 </div>
 
-                <div className="space-y-2 md:col-span-2">
-                  <Label htmlFor="paymentLink">External Payment Link (Optional)</Label>
-                  <Input
-                    id="paymentLink"
-                    name="paymentLink"
-                    type="url"
-                    value={formData.paymentLink}
-                    onChange={handleChange}
-                    placeholder="https://payment-provider.com/checkout/your-product"
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    💡 Add a payment link from your preferred payment provider (Stripe, PayPal, Gumroad, etc.)
-                  </p>
-                </div>
               </div>
 
               {error && (

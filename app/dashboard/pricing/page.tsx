@@ -81,7 +81,7 @@ export default function PricingManagementPage() {
         description: formData.description,
         features: formData.features.split('\n').filter(f => f.trim()),
         includes: formData.type === 'bundle' ? selectedPlans : undefined,
-        paymentLink: formData.paymentLink || undefined,
+        paymentLink: formData.paymentLink,
         popular: formData.popular,
         active: formData.active,
       };
@@ -204,6 +204,20 @@ export default function PricingManagementPage() {
                   </div>
 
                   <div>
+                    <Label htmlFor="id">ID (Auto-generated)</Label>
+                    <Input
+                      id="id"
+                      name="id"
+                      value={editingItem?.id || 'Auto-generated on save'}
+                      disabled
+                      className="bg-gray-50"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Auto-generated ID for this pricing plan</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
                     <Label htmlFor="type">Type</Label>
                     <Select value={formData.type} onValueChange={(value) => handleSelectChange('type', value)}>
                       <SelectTrigger>
@@ -274,6 +288,19 @@ export default function PricingManagementPage() {
                     rows={2}
                     required
                   />
+                </div>
+
+                <div>
+                  <Label htmlFor="paymentLink">External Payment URL</Label>
+                  <Input
+                    id="paymentLink"
+                    name="paymentLink"
+                    type="url"
+                    value={formData.paymentLink}
+                    onChange={handleInputChange}
+                    placeholder="https://example.com/pay"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">URL where customers will be redirected to complete payment</p>
                 </div>
 
                 {formData.type === 'product' && (
@@ -354,20 +381,6 @@ export default function PricingManagementPage() {
                   </div>
                 )}
 
-                <div>
-                  <Label htmlFor="paymentLink">External Payment Link (Optional)</Label>
-                  <Input
-                    id="paymentLink"
-                    name="paymentLink"
-                    type="url"
-                    value={formData.paymentLink}
-                    onChange={handleInputChange}
-                    placeholder="https://payment-provider.com/checkout/your-plan"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    💡 Add a payment link from your payment provider. When set, customers will be redirected to this link instead of the default checkout.
-                  </p>
-                </div>
 
                 <div className="flex gap-4">
                   <label className="flex items-center gap-2">

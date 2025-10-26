@@ -2,21 +2,16 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useProducts } from '@/lib/hooks';
-import { useAuth } from '@/lib/auth-context';
 import type { Product } from '@/types';
 
 export default function ProductDetailsPage() {
   const { id } = useParams();
-  const router = useRouter();
-  const { user } = useAuth();
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [paymentStatus, setPaymentStatus] = useState<'idle' | 'success' | 'failed'>('idle');
   const { getProducts } = useProducts();
 
   useEffect(() => {
@@ -45,24 +40,12 @@ export default function ProductDetailsPage() {
     }
   }, [id]);
 
-  const handlePaymentError = (error: any) => {
-    console.error('Payment error:', error);
-    setPaymentStatus('failed');
-    alert('Payment failed: ' + (error?.message || 'Please try again'));
+  const handleCheckout = () => {
+    if (!product || !product.paymentLink) return;
+    // Redirect to external payment URL
+    window.open(product.paymentLink, '_blank');
   };
 
-  const handleCheckout = () => {
-    if (!product) return;
-    
-    // If product has external payment link, redirect to it
-    if (product.paymentLink) {
-      window.location.href = product.paymentLink;
-      return;
-    }
-    
-    // If no payment link is provided, show alert
-    alert(`No payment link configured for ${product.title}. Please contact support.`);
-  };
 
   const getTypeBadge = (type: string) => {
     const typeMap: Record<string, { label: string; className: string }> = {
@@ -160,33 +143,22 @@ export default function ProductDetailsPage() {
               )}
 
               <div className="space-y-4 mt-8">
-                {paymentStatus === 'success' && (
-                  <div className="p-4 bg-green-50 border border-green-200 rounded-lg text-center">
-                    <p className="font-semibold text-green-900">✓ Payment Successful!</p>
-                    <p className="text-sm text-green-700">Redirecting to dashboard...</p>
-                  </div>
-                )}
-
                 {/* Payment Button */}
                 <div className="space-y-3">
                   <Button 
                     size="lg" 
                     className="w-full py-6 text-lg"
                     onClick={handleCheckout}
+                    disabled={!product.paymentLink}
                   >
                     Buy Now - ${Number(product.price).toFixed(2)}
                   </Button>
-                  {product.paymentLink && (
-                    <p className="text-xs text-center text-muted-foreground">
-                      🔗 Secure payment via external provider
-                    </p>
-                  )}
                 </div>
 
-                {product.fileUrl && (
+                {product.paymentLink && (
                   <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                     <p className="text-xs text-blue-800 text-center">
-                      💡 After successful payment, you'll get instant access to download this product
+                      💡 After successful payment, you'll be redirected to download this product
                     </p>
                   </div>
                 )}
@@ -215,6 +187,7 @@ export default function ProductDetailsPage() {
           </div>
         </div>
       </div>
+
     </main>
   );
 }
