@@ -96,28 +96,8 @@ export default function SupportPage() {
             </Card>
           </div>
 
-          {/* FAQ & Resources */}
-          <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Quick Links</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="space-y-2">
-                  <h4 className="font-medium text-sm">Documentation</h4>
-                  <p className="text-sm text-muted-foreground">Browse our guides and tutorials</p>
-                </div>
-                <div className="space-y-2">
-                  <h4 className="font-medium text-sm">FAQ</h4>
-                  <p className="text-sm text-muted-foreground">Find answers to common questions</p>
-                </div>
-                <div className="space-y-2">
-                  <h4 className="font-medium text-sm">Community Forum</h4>
-                  <p className="text-sm text-muted-foreground">Connect with other users</p>
-                </div>
-              </CardContent>
-            </Card>
-
+          {/* Location Card */}
+          <div>
             <Card>
               <CardHeader>
                 <MapPin className="h-6 w-6 text-primary mb-2" />
