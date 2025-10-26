@@ -6,12 +6,14 @@ import { useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { useProducts } from '@/lib/hooks';
 import type { Product } from '@/types';
+import { ShoppingCart } from 'lucide-react';
 
 export default function ProductDetailsPage() {
   const { id } = useParams();
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [imageLoaded, setImageLoaded] = useState(false);
   const { getProducts } = useProducts();
 
   useEffect(() => {
@@ -89,105 +91,116 @@ export default function ProductDetailsPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gray-50 py-12">
-      <div className="container mx-auto px-4">
-        <Button variant="ghost" asChild className="mb-6">
-          <Link href="/" className="flex items-center">
-            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
-            Back to Products
-          </Link>
-        </Button>
+    <>
+      <main className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50">
+        <div className="container mx-auto px-4 py-6">
+          <Button variant="ghost" asChild className="mb-6">
+            <Link href="/" className="flex items-center text-gray-600 hover:text-gray-900 transition-colors">
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+              Back to Products
+            </Link>
+          </Button>
 
-        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-          <div className="md:flex">
-            {/* Product Image */}
-            <div className="md:w-1/2 p-6 flex items-center justify-center bg-gray-50">
+          <div className="bg-white rounded-2xl shadow-xl lg:grid lg:grid-cols-2 lg:max-h-[calc(100vh-160px)]">
+            {/* Product Image - Fixed/Sticky Left Side */}
+            <div className="lg:sticky lg:top-0 lg:self-start lg:h-[calc(100vh-160px)] bg-gradient-to-br from-gray-50 via-white to-gray-100 flex items-center justify-center p-8 lg:p-12">
               {product.imageUrl ? (
-                <img
-                  src={product.imageUrl}
-                  alt={product.title}
-                  className="max-h-96 w-auto object-contain"
-                />
+                <div className="relative w-full h-full flex items-center justify-center">
+                  {!imageLoaded && (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-400"></div>
+                    </div>
+                  )}
+                  <img
+                    src={product.imageUrl}
+                    alt={product.title}
+                    className={`max-h-full w-auto max-w-full object-contain rounded-xl shadow-2xl transition-all duration-300 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
+                    onLoad={() => setImageLoaded(true)}
+                  />
+                </div>
               ) : (
-                <div className="w-full h-64 flex items-center justify-center bg-gray-200 rounded">
+                <div className="w-full h-64 flex items-center justify-center bg-gray-200 rounded-lg">
                   <span className="text-gray-400">No image available</span>
                 </div>
               )}
             </div>
 
-            {/* Product Details */}
-            <div className="md:w-1/2 p-8">
-              <div className="flex justify-between items-start mb-4">
-                <div>
-                  <h1 className="text-3xl font-bold text-gray-900 mb-2">{product.title}</h1>
-                  <div className="flex items-center mb-4">
+            {/* Product Details - Scrollable Right Side */}
+            <div className="lg:overflow-y-auto lg:h-[calc(100vh-160px)]">
+              <div className="p-8 lg:p-12">
+                <div className="mb-6">
+                  <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4 leading-tight">{product.title}</h1>
+                  <div className="flex items-center gap-4 mb-6 flex-wrap">
                     {getTypeBadge(product.type)}
-                    <span className="ml-4 text-2xl font-bold text-gray-900">
+                    <span className="text-3xl lg:text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
                       ${Number(product.price).toFixed(2)}
                     </span>
                   </div>
                 </div>
-              </div>
 
-              {product.shortDescription && (
-                <p className="text-gray-700 text-lg mb-6">{product.shortDescription}</p>
-              )}
+                {product.shortDescription && (
+                  <p className="text-gray-700 text-lg mb-6 leading-relaxed">{product.shortDescription}</p>
+                )}
 
-              {product.description && (
-                <div className="prose max-w-none mb-8">
-                  <h3 className="text-lg font-semibold mb-2">Description</h3>
-                  <p className="text-gray-600 whitespace-pre-line">{product.description}</p>
+                {/* CTA Section */}
+                <div className="mb-8">
+                  <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl p-6 shadow-lg">
+                    <div className="flex items-center justify-between mb-4">
+                      <span className="text-white text-sm font-medium">Get instant access</span>
+                      <ShoppingCart className="w-5 h-5 text-white" />
+                    </div>
+                    <Button 
+                      size="lg" 
+                      className="w-full bg-white text-blue-600 hover:bg-gray-100 font-bold py-6 text-lg transition-all duration-200 hover:scale-105"
+                      onClick={handleCheckout}
+                      disabled={!product.paymentLink}
+                    >
+                      Buy Now - ${Number(product.price).toFixed(2)}
+                    </Button>
+                    
+                    {product.paymentLink && (
+                      <div className="mt-4 p-3 bg-transparent">
+                        <p className="text-xs text-white text-center opacity-90">
+                          💡 After successful payment, you'll be redirected to download this product
+                        </p>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              )}
 
-              <div className="space-y-4 mt-8">
-                {/* Payment Button */}
-                <div className="space-y-3">
-                  <Button 
-                    size="lg" 
-                    className="w-full py-6 text-lg"
-                    onClick={handleCheckout}
-                    disabled={!product.paymentLink}
-                  >
-                    Buy Now - ${Number(product.price).toFixed(2)}
-                  </Button>
-                </div>
-
-                {product.paymentLink && (
-                  <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                    <p className="text-xs text-blue-800 text-center">
-                      💡 After successful payment, you'll be redirected to download this product
-                    </p>
+                {product.description && (
+                  <div className="prose max-w-none mb-8">
+                    <h3 className="text-xl font-semibold mb-4 text-gray-900">Description</h3>
+                    <p className="text-gray-600 whitespace-pre-line leading-relaxed">{product.description}</p>
                   </div>
                 )}
-              </div>
 
-              <div className="mt-8 pt-6 border-t border-gray-200">
-                <h3 className="text-sm font-medium text-gray-900">Product Details</h3>
-                <div className="mt-2 space-y-2 text-sm text-gray-600">
-                  <div className="flex">
-                    <span className="w-24 text-gray-500">Type</span>
-                    <span className="capitalize">{product.type}</span>
-                  </div>
-                  <div className="flex">
-                    <span className="w-24 text-gray-500">Added</span>
-                    <span>{new Date(product.createdAt).toLocaleDateString()}</span>
-                  </div>
-                  {product.updatedAt && (
-                    <div className="flex">
-                      <span className="w-24 text-gray-500">Updated</span>
-                      <span>{new Date(product.updatedAt).toLocaleDateString()}</span>
+                <div className="pt-6 border-t border-gray-200 pb-8">
+                  <h3 className="text-sm font-medium text-gray-900 mb-4">Product Details</h3>
+                  <div className="space-y-3 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-500 font-medium">Type</span>
+                      <span className="capitalize font-semibold text-gray-900">{product.type}</span>
                     </div>
-                  )}
+                    <div className="flex justify-between">
+                      <span className="text-gray-500 font-medium">Added</span>
+                      <span className="text-gray-900">{new Date(product.createdAt).toLocaleDateString()}</span>
+                    </div>
+                    {product.updatedAt && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-500 font-medium">Updated</span>
+                        <span className="text-gray-900">{new Date(product.updatedAt).toLocaleDateString()}</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
-
-    </main>
+      </main>
+    </>
   );
 }

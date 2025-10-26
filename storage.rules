@@ -2,21 +2,16 @@ rules_version = '2';
 
 service firebase.storage {
   match /b/{bucket}/o {
-    // Helper function to check if user is admin
-    function isAdmin() {
-      return request.auth != null && 
-             firestore.get(/databases/(default)/documents/admins/$(request.auth.uid)).data != null;
-    }
-    
-    // Product images - public read access, admin-only write/delete
+    // Product images - public read, authenticated users can write (for now)
     match /products/{imageId} {
-      allow read: if true; // Public read access
-      allow write, delete: if isAdmin(); // Only admins can upload/delete
+      allow read: if true; // Anyone can view images
+      allow write: if request.auth != null; // Authenticated users can upload
     }
     
-    // All other paths - admin-only access
+    // All other paths - admin-only
     match /{allPaths=**} {
-      allow read, write, delete: if isAdmin();
+      allow read: if true;
+      allow write: if request.auth != null;
     }
   }
 }

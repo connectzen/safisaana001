@@ -65,6 +65,8 @@ export default function NewProductPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
+    setLoading(false)
+    setUploading(false)
     
     if (!formData.type) {
       setError("Please select a product type")
@@ -82,23 +84,26 @@ export default function NewProductPage() {
     }
 
     try {
-      setLoading(true)
       let imageUrl = formData.imageUrl
 
       // Upload image if file is selected
       if (imageFile) {
+        console.log('Starting image upload process...')
         setUploading(true)
         try {
           imageUrl = await uploadImage(imageFile, 'products')
+          console.log('Image uploaded successfully:', imageUrl)
         } catch (uploadError: any) {
+          console.error('Image upload failed:', uploadError)
           setError(uploadError.message || "Failed to upload image")
           setUploading(false)
-          setLoading(false)
           return
         }
         setUploading(false)
       }
 
+      console.log('Adding product to database...')
+      setLoading(true)
       await addProduct({
         ...formData,
         imageUrl,
@@ -106,11 +111,14 @@ export default function NewProductPage() {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       })
+      console.log('Product added successfully')
       router.push("/dashboard")
     } catch (err: any) {
+      console.error('Error adding product:', err)
       setError(err.message || "Failed to add product")
     } finally {
       setLoading(false)
+      setUploading(false)
     }
   }
 
