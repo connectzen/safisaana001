@@ -1,41 +1,16 @@
 'use client';
 
-import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { MessageSquare, Mail, Phone, MapPin, Clock, Send } from 'lucide-react';
+import { Mail, Phone, MapPin, MessageCircle } from 'lucide-react';
 
 export default function SupportPage() {
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    subject: '',
-    category: '',
-    message: '',
-  });
-  const [submitted, setSubmitted] = useState(false);
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleCategoryChange = (value: string) => {
-    setFormData(prev => ({ ...prev, category: value }));
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log('Support request:', formData);
-    setSubmitted(true);
-    setTimeout(() => {
-      setSubmitted(false);
-      setFormData({ name: '', email: '', subject: '', category: '', message: '' });
-    }, 3000);
+  const phoneNumber = '+254796105726';
+  const email = 'safisaana001@gmail.com';
+  
+  const handleWhatsAppClick = () => {
+    const message = encodeURIComponent("Hello, I need assistance with...");
+    window.open(`https://wa.me/${phoneNumber.replace(/[^0-9]/g, '')}?text=${message}`, '_blank');
   };
 
   return (
@@ -52,12 +27,23 @@ export default function SupportPage() {
           {/* Contact Methods */}
           <Card>
             <CardHeader>
+              <MessageCircle className="h-8 w-8 text-[#25D366] mb-2" />
+              <CardTitle>WhatsApp Support</CardTitle>
+              <CardDescription>Chat with us instantly</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">{phoneNumber}</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
               <Mail className="h-8 w-8 text-primary mb-2" />
               <CardTitle>Email Support</CardTitle>
               <CardDescription>Get a response within 24 hours</CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground">support@safisaana.com</p>
+              <p className="text-sm text-muted-foreground">{email}</p>
             </CardContent>
           </Card>
 
@@ -65,122 +51,47 @@ export default function SupportPage() {
             <CardHeader>
               <Phone className="h-8 w-8 text-primary mb-2" />
               <CardTitle>Phone Support</CardTitle>
-              <CardDescription>Mon-Fri, 9am-5pm EST</CardDescription>
+              <CardDescription>Mon-Fri, 9am-5pm EAT</CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground">+1 (555) 123-4567</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <Clock className="h-8 w-8 text-primary mb-2" />
-              <CardTitle>Response Time</CardTitle>
-              <CardDescription>Average response time</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">Under 4 hours</p>
+              <p className="text-sm text-muted-foreground">{phoneNumber}</p>
             </CardContent>
           </Card>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Support Form */}
+          {/* WhatsApp CTA */}
           <div className="lg:col-span-2">
-            <Card>
-              <CardHeader>
-                <CardTitle>Send us a message</CardTitle>
-                <CardDescription>
-                  Fill out the form below and we'll get back to you as soon as possible
+            <Card className="border-2 border-[#25D366]">
+              <CardHeader className="text-center">
+                <MessageCircle className="h-16 w-16 text-[#25D366] mx-auto mb-4" />
+                <CardTitle className="text-3xl">Chat with Us on WhatsApp</CardTitle>
+                <CardDescription className="text-lg">
+                  Get instant support from our team
                 </CardDescription>
               </CardHeader>
-              <CardContent>
-                {submitted ? (
-                  <div className="text-center py-8">
-                    <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
-                      <Send className="h-8 w-8 text-green-600" />
-                    </div>
-                    <h3 className="text-xl font-semibold mb-2">Message Sent!</h3>
-                    <p className="text-muted-foreground">
-                      Thank you for contacting us. We'll get back to you soon.
-                    </p>
+              <CardContent className="text-center space-y-6">
+                <p className="text-gray-600">
+                  Have a question? Need help? Just click the button below to start a conversation with us on WhatsApp.
+                </p>
+                <Button 
+                  onClick={handleWhatsAppClick}
+                  className="w-full bg-[#25D366] hover:bg-[#128C7E] text-white text-lg font-semibold py-6 shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
+                  size="lg"
+                >
+                  <MessageCircle className="mr-3 h-6 w-6" />
+                  Open WhatsApp Chat
+                </Button>
+                <div className="flex flex-col sm:flex-row gap-4 pt-4 border-t">
+                  <div className="flex-1 text-center">
+                    <p className="text-sm text-muted-foreground">Phone</p>
+                    <p className="font-medium">{phoneNumber}</p>
                   </div>
-                ) : (
-                  <form onSubmit={handleSubmit} className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="name">Name *</Label>
-                        <Input
-                          id="name"
-                          name="name"
-                          value={formData.name}
-                          onChange={handleInputChange}
-                          placeholder="John Doe"
-                          required
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="email">Email *</Label>
-                        <Input
-                          id="email"
-                          name="email"
-                          type="email"
-                          value={formData.email}
-                          onChange={handleInputChange}
-                          placeholder="you@example.com"
-                          required
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <Label htmlFor="category">Category *</Label>
-                      <Select value={formData.category} onValueChange={handleCategoryChange} required>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select a category" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="technical">Technical Issue</SelectItem>
-                          <SelectItem value="billing">Billing Question</SelectItem>
-                          <SelectItem value="product">Product Inquiry</SelectItem>
-                          <SelectItem value="account">Account Support</SelectItem>
-                          <SelectItem value="feature">Feature Request</SelectItem>
-                          <SelectItem value="other">Other</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div>
-                      <Label htmlFor="subject">Subject *</Label>
-                      <Input
-                        id="subject"
-                        name="subject"
-                        value={formData.subject}
-                        onChange={handleInputChange}
-                        placeholder="Brief description of your issue"
-                        required
-                      />
-                    </div>
-
-                    <div>
-                      <Label htmlFor="message">Message *</Label>
-                      <Textarea
-                        id="message"
-                        name="message"
-                        value={formData.message}
-                        onChange={handleInputChange}
-                        placeholder="Please provide as much detail as possible..."
-                        rows={6}
-                        required
-                      />
-                    </div>
-
-                    <Button type="submit" className="w-full" size="lg">
-                      <Send className="mr-2 h-4 w-4" />
-                      Send Message
-                    </Button>
-                  </form>
-                )}
+                  <div className="flex-1 text-center">
+                    <p className="text-sm text-muted-foreground">Email</p>
+                    <p className="font-medium">{email}</p>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </div>
@@ -210,14 +121,12 @@ export default function SupportPage() {
             <Card>
               <CardHeader>
                 <MapPin className="h-6 w-6 text-primary mb-2" />
-                <CardTitle>Office Location</CardTitle>
+                <CardTitle>Our Location</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground">
-                  123 Business Street<br />
-                  Suite 100<br />
-                  New York, NY 10001<br />
-                  United States
+                  Nairobi, Kenya<br />
+                  East Africa
                 </p>
               </CardContent>
             </Card>

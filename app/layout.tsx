@@ -33,8 +33,8 @@ function HeaderContent() {
 
   return (
     <header className="border-b sticky top-0 z-40 bg-white backdrop-blur">
-      <div className="container mx-auto flex h-16 items-center justify-between py-4 px-4">
-        <div className="flex gap-6 md:gap-10">
+      <div className="container mx-auto flex h-16 items-center justify-between py-4 px-4 relative">
+        <div className="flex gap-6 md:gap-10 items-center">
           <Link href="/" className="flex items-center space-x-2">
             <span className="inline-block font-bold text-xl">SAFISAANA</span>
           </Link>
