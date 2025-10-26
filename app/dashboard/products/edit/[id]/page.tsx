@@ -8,12 +8,13 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
-import { ArrowLeft, Loader2 } from "lucide-react"
+import { ArrowLeft, Loader2, Upload } from "lucide-react"
 import Link from "next/link"
 import { useRouter, useParams } from "next/navigation"
 import { useProducts } from "@/lib/hooks"
 import { doc, getDoc } from "firebase/firestore"
 import { db } from "@/lib/firebase"
+import { uploadImage } from "@/lib/utils/uploadImage"
 
 type ProductType = 'plugin' | 'ebook' | 'course'
 
@@ -29,6 +30,9 @@ export default function EditProductPage() {
     shortDescription: "",
     description: ""
   })
+  const [imageFile, setImageFile] = useState<File | null>(null)
+  const [imagePreview, setImagePreview] = useState<string>("")
+  const [uploading, setUploading] = useState(false)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState("")
@@ -82,6 +86,19 @@ export default function EditProductPage() {
     }))
   }
 
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      setImageFile(file)
+      // Create preview URL
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string)
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
@@ -91,8 +108,8 @@ export default function EditProductPage() {
       return
     }
 
-    if (!formData.imageUrl) {
-      setError("Please provide an image URL")
+    if (!imageFile && !formData.imageUrl) {
+      setError("Please upload an image or provide an image URL")
       return
     }
 
@@ -103,8 +120,25 @@ export default function EditProductPage() {
 
     try {
       setSaving(true)
+      let imageUrl = formData.imageUrl
+
+      // Upload image if file is selected
+      if (imageFile) {
+        setUploading(true)
+        try {
+          imageUrl = await uploadImage(imageFile, 'products')
+        } catch (uploadError: any) {
+          setError(uploadError.message || "Failed to upload image")
+          setUploading(false)
+          setSaving(false)
+          return
+        }
+        setUploading(false)
+      }
+
       await updateProduct(id, {
         ...formData,
+        imageUrl,
         price: parseFloat(formData.price) || 0,
       })
       router.push("/dashboard")
@@ -204,17 +238,53 @@ export default function EditProductPage() {
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="imageUrl">Image URL *</Label>
-                  <Input
-                    id="imageUrl"
-                    name="imageUrl"
-                    type="url"
-                    value={formData.imageUrl}
-                    onChange={handleChange}
-                    placeholder="https://example.com/image.jpg"
-                    required
-                  />
+                <div className="space-y-2 md:col-span-2">
+                  <Label>Product Image *</Label>
+                  <div className="space-y-4">
+                    {/* Current image preview if exists */}
+                    {formData.imageUrl && !imagePreview && (
+                      <div className="relative w-32 h-32 border rounded-lg overflow-hidden">
+                        <img src={formData.imageUrl} alt="Current" className="w-full h-full object-cover" />
+                      </div>
+                    )}
+                    
+                    <div>
+                      <Label htmlFor="imageFile" className="cursor-pointer">
+                        <div className="flex items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg hover:border-gray-400 transition-colors">
+                          <div className="text-center">
+                            <Upload className="mx-auto h-8 w-8 text-gray-400" />
+                            <p className="mt-2 text-sm text-gray-600">
+                              {imagePreview ? "Image selected" : "Click to upload new image"}
+                            </p>
+                            <p className="text-xs text-gray-500 mt-1">PNG, JPG up to 5MB</p>
+                          </div>
+                        </div>
+                      </Label>
+                      <Input
+                        id="imageFile"
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageChange}
+                        className="hidden"
+                      />
+                    </div>
+                    {imagePreview && (
+                      <div className="relative w-32 h-32 border rounded-lg overflow-hidden">
+                        <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+                      </div>
+                    )}
+                    <div className="text-sm text-gray-500">
+                      OR
+                    </div>
+                    <Input
+                      name="imageUrl"
+                      type="url"
+                      value={formData.imageUrl}
+                      onChange={handleChange}
+                      placeholder="https://example.com/image.jpg (Optional if uploading)"
+                    />
+                    <p className="text-xs text-gray-500">You can either upload an image or provide a URL</p>
+                  </div>
                 </div>
 
                 <div className="space-y-2">
@@ -265,11 +335,16 @@ export default function EditProductPage() {
               )}
 
               <div className="flex justify-end gap-4">
-                <Button type="button" variant="outline" onClick={() => router.push("/dashboard")}>
+                <Button type="button" variant="outline" onClick={() => router.push("/dashboard")} disabled={saving || uploading}>
                   Cancel
                 </Button>
-                <Button type="submit" disabled={saving}>
-                  {saving ? (
+                <Button type="submit" disabled={saving || uploading}>
+                  {uploading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Uploading Image...
+                    </>
+                  ) : saving ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       Updating...

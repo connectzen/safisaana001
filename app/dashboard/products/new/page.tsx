@@ -8,10 +8,11 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
-import { ArrowLeft } from "lucide-react"
+import { ArrowLeft, Upload } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useProducts } from "@/lib/hooks"
+import { uploadImage } from "@/lib/utils/uploadImage"
 
 type ProductType = 'plugin' | 'ebook' | 'course'
 
@@ -25,6 +26,9 @@ export default function NewProductPage() {
     shortDescription: "",
     description: ""
   })
+  const [imageFile, setImageFile] = useState<File | null>(null)
+  const [imagePreview, setImagePreview] = useState<string>("")
+  const [uploading, setUploading] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const router = useRouter()
@@ -45,6 +49,19 @@ export default function NewProductPage() {
     }))
   }
 
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      setImageFile(file)
+      // Create preview URL
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string)
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
@@ -54,8 +71,8 @@ export default function NewProductPage() {
       return
     }
 
-    if (!formData.imageUrl) {
-      setError("Please provide an image URL")
+    if (!imageFile && !formData.imageUrl) {
+      setError("Please upload an image or provide an image URL")
       return
     }
 
@@ -66,8 +83,25 @@ export default function NewProductPage() {
 
     try {
       setLoading(true)
+      let imageUrl = formData.imageUrl
+
+      // Upload image if file is selected
+      if (imageFile) {
+        setUploading(true)
+        try {
+          imageUrl = await uploadImage(imageFile, 'products')
+        } catch (uploadError: any) {
+          setError(uploadError.message || "Failed to upload image")
+          setUploading(false)
+          setLoading(false)
+          return
+        }
+        setUploading(false)
+      }
+
       await addProduct({
         ...formData,
+        imageUrl,
         price: parseFloat(formData.price) || 0,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
@@ -145,17 +179,46 @@ export default function NewProductPage() {
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="imageUrl">Image URL *</Label>
-                  <Input
-                    id="imageUrl"
-                    name="imageUrl"
-                    type="url"
-                    value={formData.imageUrl}
-                    onChange={handleChange}
-                    placeholder="https://example.com/image.jpg"
-                    required
-                  />
+                <div className="space-y-2 md:col-span-2">
+                  <Label>Product Image *</Label>
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="imageFile" className="cursor-pointer">
+                        <div className="flex items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg hover:border-gray-400 transition-colors">
+                          <div className="text-center">
+                            <Upload className="mx-auto h-8 w-8 text-gray-400" />
+                            <p className="mt-2 text-sm text-gray-600">
+                              {imagePreview ? "Image selected" : "Click to upload image"}
+                            </p>
+                            <p className="text-xs text-gray-500 mt-1">PNG, JPG up to 5MB</p>
+                          </div>
+                        </div>
+                      </Label>
+                      <Input
+                        id="imageFile"
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageChange}
+                        className="hidden"
+                      />
+                    </div>
+                    {imagePreview && (
+                      <div className="relative w-32 h-32 border rounded-lg overflow-hidden">
+                        <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+                      </div>
+                    )}
+                    <div className="text-sm text-gray-500">
+                      OR
+                    </div>
+                    <Input
+                      name="imageUrl"
+                      type="url"
+                      value={formData.imageUrl}
+                      onChange={handleChange}
+                      placeholder="https://example.com/image.jpg (Optional if uploading)"
+                    />
+                    <p className="text-xs text-gray-500">You can either upload an image or provide a URL</p>
+                  </div>
                 </div>
 
                 <div className="space-y-2">
@@ -206,11 +269,11 @@ export default function NewProductPage() {
               )}
 
               <div className="flex justify-end gap-4">
-                <Button type="button" variant="outline" onClick={() => router.push("/dashboard")}>
+                <Button type="button" variant="outline" onClick={() => router.push("/dashboard")} disabled={loading || uploading}>
                   Cancel
                 </Button>
-                <Button type="submit" disabled={loading}>
-                  {loading ? 'Adding...' : 'Add Product'}
+                <Button type="submit" disabled={loading || uploading}>
+                  {uploading ? 'Uploading Image...' : loading ? 'Adding...' : 'Add Product'}
                 </Button>
               </div>
             </form>
