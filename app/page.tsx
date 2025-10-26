@@ -238,19 +238,6 @@ export default function Home() {
           </div>
         )}
       </section>
-
-      {/* CTA Section */}
-      <section className="bg-gray-100 py-16">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold mb-4">Ready to get started?</h2>
-          <p className="text-gray-600 mb-8 max-w-2xl mx-auto">
-            Join thousands of satisfied customers who are already using our products to boost their productivity.
-          </p>
-          <div className="flex gap-4 justify-center">
-            <Button size="lg">Browse All Products</Button>
-          </div>
-        </div>
-      </section>
     </main>
   );
 }
