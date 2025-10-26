@@ -14,7 +14,6 @@ export function SiteFooter() {
         { name: 'Plugins', href: '/?filter=plugin' },
         { name: 'E-books', href: '/?filter=ebook' },
         { name: 'Courses', href: '/?filter=course' },
-        { name: 'Pricing', href: '/pricing' },
       ],
     },
     {
@@ -32,7 +31,6 @@ export function SiteFooter() {
         { name: 'Terms of Service', href: '/terms-of-service' },
         { name: 'Privacy Policy', href: '/privacy-policy' },
         { name: 'Refund Policy', href: '/refund-policy' },
-        { name: 'License Agreement', href: '#' },
       ],
     },
   ];

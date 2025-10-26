@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -14,6 +14,8 @@ export default function ProductDetailsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [imageLoaded, setImageLoaded] = useState(false);
+  const [showStickyButton, setShowStickyButton] = useState(false);
+  const ctaRef = useRef<HTMLDivElement>(null);
   const { getProducts } = useProducts();
 
   useEffect(() => {
@@ -41,6 +43,30 @@ export default function ProductDetailsPage() {
       fetchProduct();
     }
   }, [id]);
+
+  // Handle scroll to show/hide sticky button when original button is not visible
+  useEffect(() => {
+    if (!ctaRef.current) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        // Only show sticky button when the original CTA is completely out of view
+        // isIntersecting = false means the element has scrolled past the viewport
+        setShowStickyButton(!entry.isIntersecting && entry.boundingClientRect.top < 0);
+      },
+      {
+        threshold: 0.1, // Trigger when 90% of button is out of view
+        rootMargin: '-100px 0px', // Wait until button is 100px below the viewport
+      }
+    );
+
+    observer.observe(ctaRef.current);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [product]);
 
   const handleCheckout = () => {
     if (!product || !product.paymentLink) return;
@@ -145,7 +171,7 @@ export default function ProductDetailsPage() {
                 )}
 
                 {/* CTA Section */}
-                <div className="mb-8">
+                <div ref={ctaRef} className="mb-8">
                   <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl p-6 shadow-lg">
                     <div className="flex items-center justify-between mb-4">
                       <span className="text-white text-sm font-medium">Get instant access</span>
@@ -201,6 +227,50 @@ export default function ProductDetailsPage() {
           </div>
         </div>
       </main>
+
+      {/* Sticky Buy Button - Appears on Scroll */}
+      <div 
+        className={`fixed bottom-0 left-0 right-0 z-50 transition-all duration-300 ease-in-out ${
+          showStickyButton ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0 pointer-events-none'
+        }`}
+      >
+        <div className="max-w-7xl mx-auto px-4 py-4 sm:py-3">
+          <div className="bg-white rounded-t-2xl shadow-2xl p-4 sm:p-3 border-t border-gray-200 backdrop-blur-sm">
+            <div className="flex items-center justify-between gap-3 sm:gap-2">
+              {/* Product Info */}
+              {product && (
+                <div className="flex-1 min-w-0 hidden sm:flex items-center gap-3">
+                  <h3 className="font-bold text-base text-gray-900 truncate">{product.title}</h3>
+                  <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent flex-shrink-0">
+                    ${Number(product.price).toFixed(2)}
+                  </span>
+                </div>
+              )}
+              
+              {/* Mobile: Just show price */}
+              {product && (
+                <div className="flex-1 min-w-0 flex items-center gap-2 sm:hidden">
+                  <span className="text-lg font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                    ${Number(product.price).toFixed(2)}
+                  </span>
+                </div>
+              )}
+
+              {/* Buy Button */}
+              <Button 
+                size="lg" 
+                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold px-6 sm:px-8 py-5 sm:py-6 text-base sm:text-lg transition-all duration-200 hover:scale-105 shadow-lg flex-shrink-0"
+                onClick={handleCheckout}
+                disabled={!product?.paymentLink}
+              >
+                <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                <span className="hidden sm:inline">Buy Now</span>
+                <span className="sm:hidden">Buy</span>
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
     </>
   );
 }

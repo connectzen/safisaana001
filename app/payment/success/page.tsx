@@ -138,7 +138,7 @@ export default function PaymentSuccessPage() {
 
             <div className="flex flex-col gap-2">
               <Button asChild className="w-full">
-                <Link href="/pricing">Try Again</Link>
+                <Link href="/">Browse Products</Link>
               </Button>
               <Button asChild variant="outline" className="w-full">
                 <Link href="/support">Contact Support</Link>

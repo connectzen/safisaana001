@@ -4,7 +4,7 @@ import type React from "react"
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Menu, X, Package, LayoutDashboard, LogOut, DollarSign } from "lucide-react"
+import { Menu, X, Package, LayoutDashboard, LogOut } from "lucide-react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { useAuth } from "@/lib/auth-context"
@@ -31,7 +31,6 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const navItems = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
     { name: "Products", href: "/dashboard/products", icon: Package },
-    { name: "Pricing", href: "/dashboard/pricing", icon: DollarSign },
   ]
 
   return (

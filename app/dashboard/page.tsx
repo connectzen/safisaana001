@@ -89,13 +89,6 @@ export default function DashboardPage() {
       color: "bg-blue-500",
     },
     {
-      title: "Manage Pricing",
-      description: "Update plans and bundles",
-      icon: DollarSign,
-      href: "/dashboard/pricing",
-      color: "bg-green-500",
-    },
-    {
       title: "View Analytics",
       description: "Track sales and performance",
       icon: TrendingUp,

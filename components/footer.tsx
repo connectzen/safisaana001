@@ -27,11 +27,6 @@ export function Footer() {
                   Products
                 </a>
               </li>
-              <li>
-                <a href="#pricing" className="text-white/80 hover:text-white transition-colors">
-                  Pricing
-                </a>
-              </li>
             </ul>
           </div>
           <div>

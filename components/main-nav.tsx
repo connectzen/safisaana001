@@ -14,7 +14,6 @@ export function MainNav() {
   const navItems = [
     { name: 'Home', href: '/' },
     { name: 'Products', href: '/#products' },
-    { name: 'Pricing', href: '/pricing' },
     { name: 'Support', href: '/support' },
   ];
 

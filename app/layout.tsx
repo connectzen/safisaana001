@@ -57,7 +57,7 @@ function HeaderContent() {
               </Link>
             </Button>
             <Button asChild size="sm">
-              <Link href="/pricing">Get Started</Link>
+              <Link href="/">Get Started</Link>
             </Button>
           </>
         )}
@@ -69,9 +69,16 @@ function HeaderContent() {
 
 function FooterContent() {
   const pathname = usePathname();
-  const hideNavigation = pathname?.startsWith('/dashboard') || pathname === '/login';
   
-  if (hideNavigation) return null;
+  // Only show footer on home page
+  // Hide footer on all other pages including:
+  // - Dashboard pages
+  // - Product detail pages  
+  // - Login page
+  // - Profile, Support, and other pages
+  const showFooter = pathname === '/';
+  
+  if (!showFooter) return null;
   return <SiteFooter />;
 }
 
